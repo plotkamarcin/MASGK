@@ -1,5 +1,4 @@
 ﻿// Mesh.cs
-using SharpDX;
 
 namespace WindowsScanline
 {

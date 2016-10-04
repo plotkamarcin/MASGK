@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,14 +36,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SharpDX, Version=3.0.2.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.3.0.2\lib\net45\SharpDX.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="SharpDX.Mathematics, Version=3.0.2.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.Mathematics.3.0.2\lib\net45\SharpDX.Mathematics.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -71,6 +64,25 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="libs\Color.cs" />
+    <Compile Include="libs\Color3.cs" />
+    <Compile Include="libs\ColorBGRA.cs" />
+    <Compile Include="libs\MathUtil.cs" />
+    <Compile Include="libs\Matrix.cs" />
+    <Compile Include="libs\Matrix3x3.cs" />
+    <Compile Include="libs\Matrix5x4.cs" />
+    <Compile Include="libs\Quaternion.cs" />
+    <Compile Include="libs\RawColor3.cs" />
+    <Compile Include="libs\RawColor4.cs" />
+    <Compile Include="libs\RawColorBGRA.cs" />
+    <Compile Include="libs\RawMatrix.cs" />
+    <Compile Include="libs\RawQuaternion.cs" />
+    <Compile Include="libs\RawVector2.cs" />
+    <Compile Include="libs\RawVector3.cs" />
+    <Compile Include="libs\RawVector4.cs" />
+    <Compile Include="libs\Vector2.cs" />
+    <Compile Include="libs\Vector3.cs" />
+    <Compile Include="libs\Vector4.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -80,6 +92,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Camera.cs" />
+    <Compile Include="libs\Color4.cs" />
     <Compile Include="Device.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

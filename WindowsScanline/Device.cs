@@ -1,6 +1,6 @@
 ﻿using System.Windows.Media.Imaging;
 using System.Runtime.InteropServices.WindowsRuntime;
-using SharpDX;
+
 
 namespace WindowsScanline
 {
