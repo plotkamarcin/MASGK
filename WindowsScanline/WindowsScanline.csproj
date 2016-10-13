@@ -64,6 +64,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Face.cs" />
     <Compile Include="libs\Color.cs" />
     <Compile Include="libs\Color3.cs" />
     <Compile Include="libs\ColorBGRA.cs" />
@@ -101,6 +102,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Mesh.cs" />
+    <Compile Include="ObjParser\Extent.cs" />
+    <Compile Include="ObjParser\Face.cs" />
+    <Compile Include="ObjParser\IType.cs" />
+    <Compile Include="ObjParser\Obj.cs" />
+    <Compile Include="ObjParser\TextureVertex.cs" />
+    <Compile Include="ObjParser\Vertex.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
