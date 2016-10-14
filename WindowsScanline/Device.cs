@@ -164,9 +164,12 @@ namespace WindowsScanline
                                   Matrix.Translation(mesh.Position);
 
                 var transformMatrix = worldMatrix * viewMatrix * projectionMatrix;
-
+                int index = 0;
                 foreach (var face in mesh.Faces)
                 {
+                    var tmpA = face.A;
+                    var tmpB = face.B;
+                    var tmpC = face.C;
                     var vertexA = mesh.Vertices[face.A];
                     var vertexB = mesh.Vertices[face.B];
                     var vertexC = mesh.Vertices[face.C];

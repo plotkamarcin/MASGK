@@ -105,14 +105,28 @@ namespace WindowsScanline
             mera.Target = Vector3.Zero;
 
             objparser.LoadObj("scene.obj");
-            
-            for(int i= 110; i < objparser.VertexList.Count; i++)
+            for(int i=0;i<objparser.FaceList.Count;i++)
             {
-                cone.Vertices[i - 110] = new Vector3((float)objparser.VertexList[i].X/10,(float) objparser.VertexList[i].Y/10, (float)objparser.VertexList[i].Z/10);
+                objparser.FaceList[i].VertexIndexList[0]--;
+                objparser.FaceList[i].VertexIndexList[1]--;
+                objparser.FaceList[i].VertexIndexList[2]--;
+
+            }
+            for (int i = 216; i < objparser.FaceList.Count; i++)
+            {
+                cone.Faces[i-216] = new Face { A = objparser.FaceList[i].VertexIndexList[0]-110, B = objparser.FaceList[i].VertexIndexList[1]-110, C = objparser.FaceList[i].VertexIndexList[2]-110 };
+            }
+            for (int i = 0; i < 216; i++)
+            {
+                cylinder.Faces[i] = new Face { A = objparser.FaceList[i].VertexIndexList[0], B = objparser.FaceList[i].VertexIndexList[1], C = objparser.FaceList[i].VertexIndexList[2] };
             }
             for (int i = 0; i < 110; i++)
             {
                 cylinder.Vertices[i] = new Vector3((float)objparser.VertexList[i].X / 10, (float)objparser.VertexList[i].Y / 10, (float)objparser.VertexList[i].Z / 10);
+            }
+            for (int i = 110; i < objparser.VertexList.Count; i++)
+            {
+                cone.Vertices[i - 110] = new Vector3((float)objparser.VertexList[i].X / 10, (float)objparser.VertexList[i].Y / 10, (float)objparser.VertexList[i].Z / 10);
             }
 
             // Registering to the XAML rendering loop
@@ -134,8 +148,8 @@ namespace WindowsScanline
             // Doing the various matrix operations
             device.RenderWireframe(mera, mesh);
             device.RenderWireframe(mera, grid);
-            device.RenderPoints(mera, cone);
-            device.RenderPoints(mera, cylinder);
+            device.RenderWireframe(mera, cone);
+            device.RenderWireframe(mera, cylinder);
             // Flushing the back buffer into the front buffer
             device.Present();
             
