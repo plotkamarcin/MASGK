@@ -1,6 +1,7 @@
 ﻿using System.Windows.Media.Imaging;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Drawing;
+using System.Threading.Tasks;
 using System;
 
 namespace WindowsScanline
@@ -402,9 +403,9 @@ namespace WindowsScanline
 
                 var transformMatrix = worldMatrix * viewMatrix * projectionMatrix;
 
-                var faceIndex = 0;
-                foreach (var face in mesh.Faces)
+                Parallel.For(0, mesh.Faces.Length, faceIndex =>
                 {
+                    var face = mesh.Faces[faceIndex];
                     var vertexA = mesh.Vertices[face.A];
                     var vertexB = mesh.Vertices[face.B];
                     var vertexC = mesh.Vertices[face.C];
@@ -416,7 +417,7 @@ namespace WindowsScanline
                     var color = 0.25f + (faceIndex % mesh.Faces.Length) * 0.75f / mesh.Faces.Length;
                     DrawTriangle(pixelA, pixelB, pixelC, new Color4(color, color, color, 1));
                     faceIndex++;
-                }
+                });
             }
         }
 
