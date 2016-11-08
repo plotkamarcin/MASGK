@@ -146,10 +146,10 @@ namespace WindowsScanline
             cone.Rotation = new Vector3(mesh.Rotation.X + 0.001f, mesh.Rotation.Y + 0.001f, mesh.Rotation.Z);
             cylinder.Rotation = new Vector3(mesh.Rotation.X + 0.001f, mesh.Rotation.Y + 0.001f, mesh.Rotation.Z);
             // Doing the various matrix operations
-            device.RenderWireframe(mera, mesh);
-            device.RenderWireframe(mera, grid);
-            device.RenderWireframe(mera, cone);
-            device.RenderWireframe(mera, cylinder);
+            device.RenderTriangles(mera, mesh);
+            device.RenderTriangles(mera, grid);
+            device.RenderTriangles(mera, cone);
+            device.RenderTriangles(mera, cylinder);
             // Flushing the back buffer into the front buffer
             device.Present();
             
