@@ -8,5 +8,6 @@
         Title="MainWindow" Height="600" Width="800" Loaded="Page_Loaded">
     <Grid>
     <Image x:Name="frontBuffer"></Image>
+        <TextBox x:Name="fpsBox" HorizontalAlignment="Left" Height="20" Margin="10,10,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="84"/>
     </Grid>
 </Window>

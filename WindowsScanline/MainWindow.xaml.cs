@@ -135,9 +135,16 @@ namespace WindowsScanline
         }
 
         // Rendering loop handler
+        DateTime previousDate;
         protected void CompositionTarget_Rendering(object sender, object e)
         {
-           
+            // Fps
+            var now = DateTime.Now;
+            var currentFps = 1000.0 / (now - previousDate).TotalMilliseconds;
+            previousDate = now;
+
+            fpsBox.Text = string.Format("{0:0.00} fps", currentFps);
+            //rendering loop
             device.Clear(0, 0, 0, 255);
 
             // rotating slightly the cube during each frame rendered

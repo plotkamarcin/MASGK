@@ -9,6 +9,7 @@ namespace WindowsScanline
     {
         private byte[] backBuffer;
         private readonly float[] depthBuffer;
+        private object[] lockBuffer;
         private WriteableBitmap bmp;
         private readonly int renderWidth;
         private readonly int renderHeight;
@@ -18,10 +19,16 @@ namespace WindowsScanline
             this.bmp = bmp;
             renderWidth = bmp.PixelWidth;
             renderHeight = bmp.PixelHeight;
+
             // the back buffer size is equal to the number of pixels to draw
             // on screen (width*height) * 4 (R,G,B & Alpha values). 
-            backBuffer = new byte[bmp.PixelWidth * bmp.PixelHeight * 4];
-            depthBuffer = new float[bmp.PixelWidth * bmp.PixelHeight];
+            backBuffer = new byte[renderWidth * renderHeight * 4];
+            depthBuffer = new float[renderWidth * renderHeight];
+            lockBuffer = new object[renderWidth * renderHeight];
+            for (var i = 0; i < lockBuffer.Length; i++)
+            {
+                lockBuffer[i] = new object();
+            }
         }
 
         // This method is called to clear the back buffer with a specific color
@@ -46,13 +53,13 @@ namespace WindowsScanline
         // into the front buffer. 
         public void Present()
         {
-            bmp.WritePixels(new System.Windows.Int32Rect(0, 0, bmp.PixelWidth, bmp.PixelHeight), backBuffer, bmp.PixelWidth * 4, 0);
+            bmp.WritePixels(new System.Windows.Int32Rect(0, 0, renderWidth, renderHeight), backBuffer, renderWidth * 4, 0);
             // request a redraw of the entire bitmap
 
         }
 
         // Called to put a pixel on screen at a specific X,Y coordinates
-        public void PutPixel(int x, int y, float z,Color4 color)
+        public void PutPixel(int x, int y, float z, Color4 color)
         {
             // As we have a 1-D Array for our back buffer
             // we need to know the equivalent cell in 1-D based
@@ -60,17 +67,21 @@ namespace WindowsScanline
             var index = (x + y * renderWidth);
             var index4 = index * 4;
 
-            if (depthBuffer[index] < z)
+            // Protecting our buffer against threads concurrencies
+            lock (lockBuffer[index])
             {
-                return; // Discard
+                if (depthBuffer[index] < z)
+                {
+                    return; // Discard
+                }
+
+                depthBuffer[index] = z;
+
+                backBuffer[index4] = (byte)(color.Blue * 255);
+                backBuffer[index4 + 1] = (byte)(color.Green * 255);
+                backBuffer[index4 + 2] = (byte)(color.Red * 255);
+                backBuffer[index4 + 3] = (byte)(color.Alpha * 255);
             }
-
-            depthBuffer[index] = z;
-
-            backBuffer[index4] = (byte)(color.Blue * 255);
-            backBuffer[index4 + 1] = (byte)(color.Green * 255);
-            backBuffer[index4 + 2] = (byte)(color.Red * 255);
-            backBuffer[index4 + 3] = (byte)(color.Alpha * 255);
         }
 
         // Called to put a pixel on screen at a specific X,Y coordinates
@@ -79,7 +90,7 @@ namespace WindowsScanline
             // As we have a 1-D Array for our back buffer
             // we need to know the equivalent cell in 1-D based
             // on the 2D coordinates on screen
-            var index = (x + y * bmp.PixelWidth) * 4;
+            var index = (x + y * renderWidth) * 4;
 
             backBuffer[index] = (byte)(color.Blue * 255);
             backBuffer[index + 1] = (byte)(color.Green * 255);
@@ -98,8 +109,8 @@ namespace WindowsScanline
             // The transformed coordinates will be based on coordinate system
             // starting on the center of the screen. But drawing on screen normally starts
             // from top left. We then need to transform them again to have x:0, y:0 on top left.
-            var x = point.X * bmp.PixelWidth + bmp.PixelWidth / 2.0f;
-            var y = -point.Y * bmp.PixelHeight + bmp.PixelHeight / 2.0f;
+            var x = point.X * renderWidth + renderWidth / 2.0f;
+            var y = -point.Y * renderHeight + renderHeight / 2.0f;
             return (new Vector3(x, y, point.Z));
         }
         public Vector2 Project2D(Vector3 coord, Matrix transMat)
@@ -109,8 +120,8 @@ namespace WindowsScanline
             // The transformed coordinates will be based on coordinate system
             // starting on the center of the screen. But drawing on screen normally starts
             // from top left. We then need to transform them again to have x:0, y:0 on top left.
-            var x = point.X * bmp.PixelWidth + bmp.PixelWidth / 2.0f;
-            var y = -point.Y * bmp.PixelHeight + bmp.PixelHeight / 2.0f;
+            var x = point.X * renderWidth + renderWidth / 2.0f;
+            var y = -point.Y * renderHeight + renderHeight / 2.0f;
             return (new Vector2(x, y));
         }
 
@@ -118,7 +129,7 @@ namespace WindowsScanline
         public void DrawPoint(Vector3 point, Color4 color)
         {
             // Clipping what's visible on screen
-            if (point.X >= 0 && point.Y >= 0 && point.X < bmp.PixelWidth && point.Y < bmp.PixelHeight)
+            if (point.X >= 0 && point.Y >= 0 && point.X < renderWidth && point.Y < renderHeight)
             {
                 // Drawing a point
                 PutPixel((int)point.X, (int)point.Y, point.Z, color);
@@ -128,7 +139,7 @@ namespace WindowsScanline
         public void DrawPoint(Vector2 point)
         {
             // Clipping what's visible on screen
-            if (point.X >= 0 && point.Y >= 0 && point.X < bmp.PixelWidth && point.Y < bmp.PixelHeight)
+            if (point.X >= 0 && point.Y >= 0 && point.X < renderWidth && point.Y < renderHeight)
             {
                 // Drawing a yellow point
                 PutPixelOld((int)point.X, (int)point.Y, new Color4(1.0f, 1.0f, 0.0f, 1.0f));
@@ -319,7 +330,7 @@ namespace WindowsScanline
             // To understand this part, please read the prerequisites resources
             var viewMatrix = Matrix.LookAtLH(camera.Position, camera.Target, Vector3.UnitY);
             var projectionMatrix = Matrix.PerspectiveFovRH(0.78f,
-                                                           (float)bmp.PixelWidth / bmp.PixelHeight,
+                                                           (float)renderWidth / renderHeight,
                                                            0.01f, 1.0f);
 
             foreach (Mesh mesh in meshes)
@@ -345,7 +356,7 @@ namespace WindowsScanline
             // To understand this part, please read the prerequisites resources
             var viewMatrix = Matrix.LookAtLH(camera.Position, camera.Target, Vector3.UnitY);
             var projectionMatrix = Matrix.PerspectiveFovRH(0.78f,
-                                                           (float)bmp.PixelWidth / bmp.PixelHeight,
+                                                           (float)renderWidth / renderHeight,
                                                            0.01f, 1.0f);
 
             foreach (Mesh mesh in meshes)
@@ -380,7 +391,7 @@ namespace WindowsScanline
             // To understand this part, please read the prerequisites resources
             var viewMatrix = Matrix.LookAtLH(camera.Position, camera.Target, Vector3.UnitY);
             var projectionMatrix = Matrix.PerspectiveFovLH(0.78f,
-                                                           (float)bmp.PixelWidth / bmp.PixelHeight,
+                                                           (float)renderWidth / renderHeight,
                                                            0.01f, 1.0f);
 
             foreach (Mesh mesh in meshes)
