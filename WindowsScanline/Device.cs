@@ -103,17 +103,28 @@ namespace WindowsScanline
 
         // Project takes some 3D coordinates and transform them
         // in 2D coordinates using the transformation matrix
-        public Vector3 Project(Vector3 coord, Matrix transMat)
+        public Mesh.Vertex Project(Mesh.Vertex vertex, Matrix transMat, Matrix world)
         {
-            // transforming the coordinates
-            var point = Vector3.TransformCoordinate(coord, transMat);
+            // transforming the coordinates into 2D space
+            var point2d = Vector3.TransformCoordinate(vertex.Coordinates, transMat);
+            // transforming the coordinates & the normal to the vertex in the 3D world
+            var point3dWorld = Vector3.TransformCoordinate(vertex.Coordinates, world);
+            var normal3dWorld = Vector3.TransformCoordinate(vertex.Normal, world);
+
             // The transformed coordinates will be based on coordinate system
             // starting on the center of the screen. But drawing on screen normally starts
             // from top left. We then need to transform them again to have x:0, y:0 on top left.
-            var x = point.X * renderWidth + renderWidth / 2.0f;
-            var y = -point.Y * renderHeight + renderHeight / 2.0f;
-            return (new Vector3(x, y, point.Z));
+            var x = point2d.X * renderWidth + renderWidth / 2.0f;
+            var y = -point2d.Y * renderHeight + renderHeight / 2.0f;
+
+            return new Mesh.Vertex
+            {
+                Coordinates = new Vector3(x, y, point2d.Z),
+                Normal = normal3dWorld,
+                WorldCoordinates = point3dWorld
+            };
         }
+
         public Vector2 Project2D(Vector3 coord, Matrix transMat)
         {
             // transforming the coordinates
@@ -146,13 +157,21 @@ namespace WindowsScanline
                 PutPixelOld((int)point.X, (int)point.Y, new Color4(1.0f, 1.0f, 0.0f, 1.0f));
             }
         }
-        void ProcessScanLine(int y, Vector3 pa, Vector3 pb, Vector3 pc, Vector3 pd, Color4 color)
+        // drawing line between 2 points from left to right
+        // papb -> pcpd
+        // pa, pb, pc, pd must then be sorted before
+        void ProcessScanLine(ScanLineData data, Mesh.Vertex va, Mesh.Vertex vb, Mesh.Vertex vc, Mesh.Vertex vd, Color4 color)
         {
+            Vector3 pa = va.Coordinates;
+            Vector3 pb = vb.Coordinates;
+            Vector3 pc = vc.Coordinates;
+            Vector3 pd = vd.Coordinates;
+
             // Thanks to current Y, we can compute the gradient to compute others values like
             // the starting X (sx) and ending X (ex) to draw between
             // if pa.Y == pb.Y or pc.Y == pd.Y, gradient is forced to 1
-            var gradient1 = pa.Y != pb.Y ? (y - pa.Y) / (pb.Y - pa.Y) : 1;
-            var gradient2 = pc.Y != pd.Y ? (y - pc.Y) / (pd.Y - pc.Y) : 1;
+            var gradient1 = pa.Y != pb.Y ? (data.currentY - pa.Y) / (pb.Y - pa.Y) : 1;
+            var gradient2 = pc.Y != pd.Y ? (data.currentY - pc.Y) / (pd.Y - pc.Y) : 1;
 
             int sx = (int)Interpolate(pa.X, pb.X, gradient1);
             int ex = (int)Interpolate(pc.X, pd.X, gradient2);
@@ -161,15 +180,22 @@ namespace WindowsScanline
             float z1 = Interpolate(pa.Z, pb.Z, gradient1);
             float z2 = Interpolate(pc.Z, pd.Z, gradient2);
 
+            var snl = Interpolate(data.ndotla, data.ndotlb, gradient1);
+            var enl = Interpolate(data.ndotlc, data.ndotld, gradient2);
+
             // drawing a line from left (sx) to right (ex) 
             for (var x = sx; x < ex; x++)
             {
                 float gradient = (x - sx) / (float)(ex - sx);
 
                 var z = Interpolate(z1, z2, gradient);
-                DrawPoint(new Vector3(x, y, z), color);
+                var ndotl = Interpolate(snl, enl, gradient);
+                // changing the color value using the cosine of the angle
+                // between the light vector and the normal vector
+                DrawPoint(new Vector3(x, data.currentY, z), color * ndotl);
             }
         }
+
         // Clamping values to keep them between 0 and 1
         float Clamp(float value, float min = 0, float max = 1)
         {
@@ -187,38 +213,60 @@ namespace WindowsScanline
         // drawing line between 2 points from left to right
         // papb -> pcpd
         // pa, pb, pc, pd must then be sorted before
+        float ComputeNDotL(Vector3 vertex, Vector3 normal, Vector3 lightPosition)
+        {
+            var lightDirection = lightPosition - vertex;
 
-        public void DrawTriangle(Vector3 p1, Vector3 p2, Vector3 p3, Color4 color)
+            normal.Normalize();
+            lightDirection.Normalize();
+
+            return Math.Max(0, Vector3.Dot(normal, lightDirection));
+        }
+        public void DrawTriangle(Mesh.Vertex v1, Mesh.Vertex v2, Mesh.Vertex v3, Color4 color)
         {
             // Sorting the points in order to always have this order on screen p1, p2 & p3
             // with p1 always up (thus having the Y the lowest possible to be near the top screen)
             // then p2 between p1 & p3
-            if (p1.Y > p2.Y)
+            if (v1.Coordinates.Y > v2.Coordinates.Y)
             {
-                var temp = p2;
-                p2 = p1;
-                p1 = temp;
+                var temp = v2;
+                v2 = v1;
+                v1 = temp;
             }
 
-            if (p2.Y > p3.Y)
+            if (v2.Coordinates.Y > v3.Coordinates.Y)
             {
-                var temp = p2;
-                p2 = p3;
-                p3 = temp;
+                var temp = v2;
+                v2 = v3;
+                v3 = temp;
             }
 
-            if (p1.Y > p2.Y)
+            if (v1.Coordinates.Y > v2.Coordinates.Y)
             {
-                var temp = p2;
-                p2 = p1;
-                p1 = temp;
+                var temp = v2;
+                v2 = v1;
+                v1 = temp;
             }
 
-            // inverse slopes
+            Vector3 p1 = v1.Coordinates;
+            Vector3 p2 = v2.Coordinates;
+            Vector3 p3 = v3.Coordinates;
+
+            // Light position 
+            Vector3 lightPos = new Vector3(0, 10, 10);
+            // computing the cos of the angle between the light vector and the normal vector
+            // it will return a value between 0 and 1 that will be used as the intensity of the color
+            float nl1 = ComputeNDotL(v1.WorldCoordinates, v1.Normal, lightPos);
+            float nl2 = ComputeNDotL(v2.WorldCoordinates, v2.Normal, lightPos);
+            float nl3 = ComputeNDotL(v3.WorldCoordinates, v3.Normal, lightPos);
+
+            var data = new ScanLineData { };
+
+            // computing lines' directions
             float dP1P2, dP1P3;
 
             // http://en.wikipedia.org/wiki/Slope
-            // Computing inverse slopes
+            // Computing slopes
             if (p2.Y - p1.Y > 0)
                 dP1P2 = (p2.X - p1.X) / (p2.Y - p1.Y);
             else
@@ -229,57 +277,54 @@ namespace WindowsScanline
             else
                 dP1P3 = 0;
 
-            // First case where triangles are like that:
-            // P1
-            // -
-            // -- 
-            // - -
-            // -  -
-            // -   - P2
-            // -  -
-            // - -
-            // -
-            // P3
             if (dP1P2 > dP1P3)
             {
                 for (var y = (int)p1.Y; y <= (int)p3.Y; y++)
                 {
+                    data.currentY = y;
+
                     if (y < p2.Y)
                     {
-                        ProcessScanLine(y, p1, p3, p1, p2, color);
+                        data.ndotla = nl1;
+                        data.ndotlb = nl3;
+                        data.ndotlc = nl1;
+                        data.ndotld = nl2;
+                        ProcessScanLine(data, v1, v3, v1, v2, color);
                     }
                     else
                     {
-                        ProcessScanLine(y, p1, p3, p2, p3, color);
+                        data.ndotla = nl1;
+                        data.ndotlb = nl3;
+                        data.ndotlc = nl2;
+                        data.ndotld = nl3;
+                        ProcessScanLine(data, v1, v3, v2, v3, color);
                     }
                 }
             }
-            // First case where triangles are like that:
-            //       P1
-            //        -
-            //       -- 
-            //      - -
-            //     -  -
-            // P2 -   - 
-            //     -  -
-            //      - -
-            //        -
-            //       P3
             else
             {
                 for (var y = (int)p1.Y; y <= (int)p3.Y; y++)
                 {
+                    data.currentY = y;
+
                     if (y < p2.Y)
                     {
-                        ProcessScanLine(y, p1, p2, p1, p3, color);
+                        data.ndotla = nl1;
+                        data.ndotlb = nl2;
+                        data.ndotlc = nl1;
+                        data.ndotld = nl3;
+                        ProcessScanLine(data, v1, v2, v1, v3, color);
                     }
                     else
                     {
-                        ProcessScanLine(y, p2, p3, p1, p3, color);
+                        data.ndotla = nl2;
+                        data.ndotlb = nl3;
+                        data.ndotlc = nl1;
+                        data.ndotld = nl3;
+                        ProcessScanLine(data, v2, v3, v1, v3, color);
                     }
                 }
             }
-
         }
         public void DrawLine(Vector2 point0, Vector2 point1)
         {
@@ -346,7 +391,7 @@ namespace WindowsScanline
                 {
 
                     // First, we project the 3D coordinates into the 2D space
-                    var point = Project2D(vertex, transformMatrix);
+                    var point = Project2D(new Vector3(vertex.Coordinates.X,vertex.Coordinates.Y,vertex.Coordinates.Z), transformMatrix);
                     // Then we can draw on screen
                     DrawPoint(point);
                 }
@@ -377,9 +422,9 @@ namespace WindowsScanline
                     var vertexB = mesh.Vertices[face.B];
                     var vertexC = mesh.Vertices[face.C];
 
-                    var pixelA = Project2D(vertexA, transformMatrix);
-                    var pixelB = Project2D(vertexB, transformMatrix);
-                    var pixelC = Project2D(vertexC, transformMatrix);
+                    var pixelA = Project2D(new Vector3(vertexA.Coordinates.X,vertexA.Coordinates.Y,vertexA.Coordinates.Z), transformMatrix);
+                    var pixelB = Project2D(new Vector3(vertexB.Coordinates.X, vertexB.Coordinates.Y, vertexB.Coordinates.Z), transformMatrix);
+                    var pixelC = Project2D(new Vector3(vertexC.Coordinates.X, vertexC.Coordinates.Y, vertexC.Coordinates.Z), transformMatrix);
 
                     DrawLine(pixelA, pixelB);
                     DrawLine(pixelB, pixelC);
@@ -410,9 +455,9 @@ namespace WindowsScanline
                     var vertexB = mesh.Vertices[face.B];
                     var vertexC = mesh.Vertices[face.C];
 
-                    var pixelA = Project(vertexA, transformMatrix);
-                    var pixelB = Project(vertexB, transformMatrix);
-                    var pixelC = Project(vertexC, transformMatrix);
+                    var pixelA = Project(vertexA, transformMatrix, worldMatrix);
+                    var pixelB = Project(vertexB, transformMatrix, worldMatrix);
+                    var pixelC = Project(vertexC, transformMatrix, worldMatrix);
 
                     var color = 0.25f + (faceIndex % mesh.Faces.Length) * 0.75f / mesh.Faces.Length;
                     DrawTriangle(pixelA, pixelB, pixelC, new Color4(color, color, color, 1));

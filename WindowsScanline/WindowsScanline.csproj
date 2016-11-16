@@ -84,6 +84,8 @@
     <Compile Include="libs\Vector2.cs" />
     <Compile Include="libs\Vector3.cs" />
     <Compile Include="libs\Vector4.cs" />
+    <Compile Include="ObjParser\Normal.cs" />
+    <Compile Include="ScanlineData.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

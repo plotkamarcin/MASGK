@@ -24,12 +24,9 @@ namespace WindowsScanline
         
         private Device device;
         
-        Mesh mesh = new Mesh("Cube", 8,12);
-        Mesh grid = new Mesh("Grid", 28, 2);
-        Mesh cylinder = new Mesh("Cone", 110, 216);
-        Mesh cone = new Mesh("Cone", 122, 288);
         Camera mera = new Camera();
-
+        Mesh[] meshes;
+        ObjParser.Obj[] objects;
         ObjParser.Obj objparser = new ObjParser.Obj();
         
 
@@ -44,92 +41,55 @@ namespace WindowsScanline
             // Our Image XAML control
             frontBuffer.Source = (ImageSource) bmp;
 
-
-            mesh.Vertices[0] = new Vector3(-1, 1, 1);
-            mesh.Vertices[1] = new Vector3(1, 1, 1);
-            mesh.Vertices[2] = new Vector3(-1, -1, 1);
-            mesh.Vertices[3] = new Vector3(1, -1, 1);
-            mesh.Vertices[4] = new Vector3(-1, 1, -1);
-            mesh.Vertices[5] = new Vector3(1, 1, -1);
-            mesh.Vertices[6] = new Vector3(1, -1, -1);
-            mesh.Vertices[7] = new Vector3(-1, -1, -1);
-
-            mesh.Faces[0] = new Face { A = 0, B = 1, C = 2 };
-            mesh.Faces[1] = new Face { A = 1, B = 2, C = 3 };
-            mesh.Faces[2] = new Face { A = 1, B = 3, C = 6 };
-            mesh.Faces[3] = new Face { A = 1, B = 5, C = 6 };
-            mesh.Faces[4] = new Face { A = 0, B = 1, C = 4 };
-            mesh.Faces[5] = new Face { A = 1, B = 4, C = 5 };
-
-            mesh.Faces[6] = new Face { A = 2, B = 3, C = 7 };
-            mesh.Faces[7] = new Face { A = 3, B = 6, C = 7 };
-            mesh.Faces[8] = new Face { A = 0, B = 2, C = 7 };
-            mesh.Faces[9] = new Face { A = 0, B = 4, C = 7 };
-            mesh.Faces[10] = new Face { A = 4, B = 5, C = 6 };
-            mesh.Faces[11] = new Face { A = 4, B = 6, C = 7 };
-
-            grid.Vertices[0] = new Vector3(2, 3, 0);
-            grid.Vertices[1] = new Vector3(2, 2, 0);
-            grid.Vertices[2] = new Vector3(2, 1, 0);
-            grid.Vertices[3] = new Vector3(2, 0, 0);
-            grid.Vertices[4] = new Vector3(2, -1, 0);
-            grid.Vertices[5] = new Vector3(2, -2, 0);
-            grid.Vertices[6] = new Vector3(2, -3, 0);
-            grid.Vertices[7] = new Vector3(1, 3, 0);
-            grid.Vertices[8] = new Vector3(1, 2, 0);
-            grid.Vertices[9] = new Vector3(1, 1, 0);
-            grid.Vertices[10] = new Vector3(1, 0, 0);
-            grid.Vertices[11] = new Vector3(1, -1, 0);
-            grid.Vertices[12] = new Vector3(1, -2, 0);
-            grid.Vertices[13] = new Vector3(1, -3, 0);
-            grid.Vertices[14] = new Vector3(0, 3, 0);
-            grid.Vertices[15] = new Vector3(0, 2, 0);
-            grid.Vertices[16] = new Vector3(0, 1, 0);
-            grid.Vertices[17] = new Vector3(0, 0, 0);
-            grid.Vertices[18] = new Vector3(0, -1, 0);
-            grid.Vertices[19] = new Vector3(0, -2, 0);
-            grid.Vertices[20] = new Vector3(0, -3, 0);
-            grid.Vertices[21] = new Vector3(-1, 3, 0);
-            grid.Vertices[22] = new Vector3(-1, 2, 0);
-            grid.Vertices[23] = new Vector3(-1, 1, 0);
-            grid.Vertices[24] = new Vector3(-1, 0, 0);
-            grid.Vertices[25] = new Vector3(-1, -1, 0);
-            grid.Vertices[26] = new Vector3(-1, -2, 0);
-            grid.Vertices[27] = new Vector3(-1, -3, 0);
-
-            grid.Faces[0] = new Face { A = 0, B = 27, C = 6 };
-            grid.Faces[1] = new Face { A = 27, B = 0, C = 21 };
-
-
             mera.Position = new Vector3(0, 0, 10.0f);
             mera.Target = Vector3.Zero;
+            string[] filenames = { "box.obj", "cylinder.obj" };
+            objects = new ObjParser.Obj[filenames.Length];
+            meshes = new Mesh[filenames.Length];
 
-            objparser.LoadObj("scene.obj");
-            for(int i=0;i<objparser.FaceList.Count;i++)
+            for (int i=0; i < filenames.Length; i++)
             {
-                objparser.FaceList[i].VertexIndexList[0]--;
-                objparser.FaceList[i].VertexIndexList[1]--;
-                objparser.FaceList[i].VertexIndexList[2]--;
-
-            }
-            for (int i = 216; i < objparser.FaceList.Count; i++)
-            {
-                cone.Faces[i-216] = new Face { A = objparser.FaceList[i].VertexIndexList[0]-110, B = objparser.FaceList[i].VertexIndexList[1]-110, C = objparser.FaceList[i].VertexIndexList[2]-110 };
-            }
-            for (int i = 0; i < 216; i++)
-            {
-                cylinder.Faces[i] = new Face { A = objparser.FaceList[i].VertexIndexList[0], B = objparser.FaceList[i].VertexIndexList[1], C = objparser.FaceList[i].VertexIndexList[2] };
-            }
-            for (int i = 0; i < 110; i++)
-            {
-                cylinder.Vertices[i] = new Vector3((float)objparser.VertexList[i].X / 10, (float)objparser.VertexList[i].Y / 10, (float)objparser.VertexList[i].Z / 10);
-            }
-            for (int i = 110; i < objparser.VertexList.Count; i++)
-            {
-                cone.Vertices[i - 110] = new Vector3((float)objparser.VertexList[i].X / 10, (float)objparser.VertexList[i].Y / 10, (float)objparser.VertexList[i].Z / 10);
+                objects[i] = new ObjParser.Obj();
+                objects[i].LoadObj(filenames[i]);
             }
 
-            // Registering to the XAML rendering loop
+            for(int i = 0; i < objects.Length; i++)
+            {
+                foreach(ObjParser.Types.Face f in objects[i].FaceList)
+                {
+                    f.VertexIndexList[0]--;
+                    f.VertexIndexList[1]--;
+                    f.VertexIndexList[2]--;
+                    f.NormalsVertexIndexList[0]--;
+                    f.NormalsVertexIndexList[1]--;
+                    f.NormalsVertexIndexList[2]--;
+                }
+            }
+
+            for(int i = 0; i < meshes.Length; i++)
+            {
+                meshes[i] = new Mesh(filenames[i], objects[i].VertexList.Count, objects[i].FaceList.Count);
+                for(int j = 0; j < objects[i].VertexList.Count; j++)
+                {
+                    var x = (float)objects[i].VertexList[j].X ;
+                    var y = (float)objects[i].VertexList[j].Y ;
+                    var z = (float)objects[i].VertexList[j].Z ;
+                    meshes[i].Vertices[j]=new Mesh.Vertex { Coordinates = new Vector3(x, y, z), Normal = new Vector3(0, 0, 0) };
+                }
+                for(int k = 0; k < objects[i].FaceList.Count; k++)
+                {
+                    meshes[i].Faces[k]= new Face { A = objects[i].FaceList[k].VertexIndexList[0], B = objects[i].FaceList[k].VertexIndexList[1], C = objects[i].FaceList[k].VertexIndexList[2], nA = objects[i].FaceList[k].NormalsVertexIndexList[0], nB = objects[i].FaceList[k].NormalsVertexIndexList[1], nC = objects[i].FaceList[k].NormalsVertexIndexList[2] };
+                }
+                foreach(Face f in meshes[i].Faces)
+                {
+                    meshes[i].Vertices[f.A].Normal.X = (float)objects[i].NormalsList[f.nA].X;
+                    meshes[i].Vertices[f.A].Normal.Y = (float)objects[i].NormalsList[f.nA].Y;
+                    meshes[i].Vertices[f.A].Normal.Z = (float)objects[i].NormalsList[f.nA].Z;
+                }
+            }
+
+
+           // Registering to the XAML rendering loop
             CompositionTarget.Rendering += CompositionTarget_Rendering;
             
         }
@@ -148,15 +108,16 @@ namespace WindowsScanline
             device.Clear(0, 0, 0, 255);
 
             // rotating slightly the cube during each frame rendered
-            mesh.Rotation = new Vector3(mesh.Rotation.X + 0.001f, mesh.Rotation.Y + 0.001f, mesh.Rotation.Z);
-            grid.Rotation = new Vector3(mesh.Rotation.X + 0.001f, mesh.Rotation.Y + 0.001f, mesh.Rotation.Z);
-            cone.Rotation = new Vector3(mesh.Rotation.X + 0.001f, mesh.Rotation.Y + 0.001f, mesh.Rotation.Z);
-            cylinder.Rotation = new Vector3(mesh.Rotation.X + 0.001f, mesh.Rotation.Y + 0.001f, mesh.Rotation.Z);
+            foreach (Mesh m in meshes)
+            {
+                m.Rotation= new Vector3(m.Rotation.X + 0.001f, m.Rotation.Y + 0.001f, m.Rotation.Z);
+            }
+            Vector3 light = new Vector3(0, 10, 10);
             // Doing the various matrix operations
-            device.RenderTriangles(mera, mesh);
-            device.RenderTriangles(mera, grid);
-            device.RenderTriangles(mera, cone);
-            device.RenderTriangles(mera, cylinder);
+            foreach ( Mesh m in meshes)
+            {
+                device.RenderTriangles(mera, m);
+            }
             // Flushing the back buffer into the front buffer
             device.Present();
             

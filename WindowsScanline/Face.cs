@@ -11,5 +11,9 @@ namespace WindowsScanline
         public int A;
         public int B;
         public int C;
+
+        public int nA;
+        public int nB;
+        public int nC;
     }
 }
