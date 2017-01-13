@@ -16,9 +16,6 @@ using System.Windows.Shapes;
 
 namespace WindowsScanline
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         
@@ -41,12 +38,17 @@ namespace WindowsScanline
             // Our Image XAML control
             frontBuffer.Source = (ImageSource) bmp;
 
+            //setup camera
             mera.Position = new Vector3(0, 0, 10.0f);
             mera.Target = Vector3.Zero;
+
+            //Setup objects filenames
             string[] filenames = { "box.obj", "cylinder.obj" };
             objects = new ObjParser.Obj[filenames.Length];
             meshes = new Mesh[filenames.Length];
 
+
+            //Load from objs
             for (int i=0; i < filenames.Length; i++)
             {
                 objects[i] = new ObjParser.Obj();
@@ -65,7 +67,7 @@ namespace WindowsScanline
                     f.NormalsVertexIndexList[2]--;
                 }
             }
-
+            //Build the meshes
             for(int i = 0; i < meshes.Length; i++)
             {
                 meshes[i] = new Mesh(filenames[i], objects[i].VertexList.Count, objects[i].FaceList.Count);
@@ -107,7 +109,7 @@ namespace WindowsScanline
             //rendering loop
             device.Clear(0, 0, 0, 255);
 
-            // rotating slightly the cube during each frame rendered
+            // rotating slightly during each frame rendered
             foreach (Mesh m in meshes)
             {
                 m.Rotation= new Vector3(m.Rotation.X + 0.001f, m.Rotation.Y + 0.001f, m.Rotation.Z);
@@ -116,12 +118,11 @@ namespace WindowsScanline
             // Doing the various matrix operations
             foreach ( Mesh m in meshes)
             {
-                device.RenderTriangles(mera, m);
+                device.RenderWireframe(mera, m);
             }
             // Flushing the back buffer into the front buffer
             device.Present();
-            
-            
+ 
         }
         public MainWindow()
         {

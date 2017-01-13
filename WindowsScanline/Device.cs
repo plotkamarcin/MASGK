@@ -426,9 +426,9 @@ namespace WindowsScanline
                     var pixelB = Project2D(new Vector3(vertexB.Coordinates.X, vertexB.Coordinates.Y, vertexB.Coordinates.Z), transformMatrix);
                     var pixelC = Project2D(new Vector3(vertexC.Coordinates.X, vertexC.Coordinates.Y, vertexC.Coordinates.Z), transformMatrix);
 
-                    DrawLine(pixelA, pixelB);
-                    DrawLine(pixelB, pixelC);
-                    DrawLine(pixelC, pixelA);
+                    DrawBline(pixelA, pixelB);
+                    DrawBline(pixelB, pixelC);
+                    DrawBline(pixelC, pixelA);
                 }
             }
         }
