@@ -135,30 +135,7 @@ namespace WindowsScanline
             Alpha = values[3];
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Color4"/> struct.
-        /// </summary>
-        /// <param name="color"><see cref="Color3"/> used to initialize the color.</param>
-        public Color4(Color3 color)
-        {
-            Red = color.Red;
-            Green = color.Green;
-            Blue = color.Blue;
-            Alpha = 1.0f;
-        }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Color4"/> struct.
-        /// </summary>
-        /// <param name="color"><see cref="Color3"/> used to initialize the color.</param>
-        /// <param name="alpha">The alpha component of the color.</param>
-        public Color4(Color3 color, float alpha)
-        {
-            Red = color.Red;
-            Green = color.Green;
-            Blue = color.Blue;
-            Alpha = alpha;
-        }
 
         /// <summary>
         /// Gets or sets the component at the specified index.
@@ -739,15 +716,7 @@ namespace WindowsScanline
             return !left.Equals(ref right);
         }
 
-        /// <summary>
-        /// Performs an explicit conversion from <see cref="Color4"/> to <see cref="Color3"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static explicit operator Color3(Color4 value)
-        {
-            return new Color3(value.Red, value.Green, value.Blue);
-        }
+
 
         /// <summary>
         /// Performs an explicit conversion from <see cref="Color4"/> to <see cref="Vector3"/>.
@@ -787,26 +756,6 @@ namespace WindowsScanline
         public static explicit operator Color4(Vector4 value)
         {
             return new Color4(value.X, value.Y, value.Z, value.W);
-        }
-
-        /// <summary>
-        /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Color4"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static explicit operator Color4(ColorBGRA value)
-        {
-            return new Color4(value.R, value.G, value.B, value.A);
-        }
-
-        /// <summary>
-        /// Performs an explicit conversion from <see cref="Vector4"/> to <see cref="Color4"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static explicit operator ColorBGRA(Color4 value)
-        {
-            return new ColorBGRA(value.Red, value.Green, value.Blue, value.Alpha);
         }
 
         /// <summary>
@@ -947,26 +896,6 @@ namespace WindowsScanline
 
             var strongValue = (Color4)value;
             return Equals(ref strongValue);
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Color4"/> to <see cref="RawColor4"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public unsafe static implicit operator RawColor4(Color4 value)
-        {
-            return *(RawColor4*)&value;
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="RawColor4"/> to <see cref="Color4"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public unsafe static implicit operator Color4(RawColor4 value)
-        {
-            return *(Color4*)&value;
         }
     }
 }

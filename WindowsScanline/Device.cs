@@ -375,7 +375,7 @@ namespace WindowsScanline
         {
             // To understand this part, please read the prerequisites resources
             var viewMatrix = Matrix.LookAtLH(camera.Position, camera.Target, Vector3.UnitY);
-            var projectionMatrix = Matrix.PerspectiveFovRH(0.78f,
+            var projectionMatrix = Matrix.PerspectiveFovLH(0.78f,
                                                            (float)renderWidth / renderHeight,
                                                            0.01f, 1.0f);
 
@@ -401,7 +401,7 @@ namespace WindowsScanline
         {
             // To understand this part, please read the prerequisites resources
             var viewMatrix = Matrix.LookAtLH(camera.Position, camera.Target, Vector3.UnitY);
-            var projectionMatrix = Matrix.PerspectiveFovRH(0.78f,
+            var projectionMatrix = Matrix.PerspectiveFovLH(0.78f,
                                                            (float)renderWidth / renderHeight,
                                                            0.01f, 1.0f);
 

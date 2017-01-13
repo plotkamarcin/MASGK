@@ -1210,32 +1210,6 @@ namespace WindowsScanline
         }
 
 
-        /// <summary>
-        /// Transforms a 3D vector by the given <see cref="Matrix3x3"/>.
-        /// </summary>
-        /// <param name="vector">The source vector.</param>
-        /// <param name="transform">The transformation <see cref="Matrix3x3"/>.</param>
-        /// <param name="result">When the method completes, contains the transformed <see cref="Vector3"/>.</param>
-        public static void Transform(ref Vector3 vector, ref Matrix3x3 transform, out Vector3 result)
-        {
-            result = new Vector3((vector.X * transform.M11) + (vector.Y * transform.M21) + (vector.Z * transform.M31),
-                                    (vector.X * transform.M12) + (vector.Y * transform.M22) + (vector.Z * transform.M32),
-                                    (vector.X * transform.M13) + (vector.Y * transform.M23) + (vector.Z * transform.M33)
-                                );
-        }
-
-        /// <summary>
-        /// Transforms a 3D vector by the given <see cref="Matrix3x3"/>.
-        /// </summary>
-        /// <param name="vector">The source vector.</param>
-        /// <param name="transform">The transformation <see cref="Matrix3x3"/>.</param>
-        /// <returns>The transformed <see cref="Vector3"/>.</returns>
-        public static Vector3 Transform(Vector3 vector, Matrix3x3 transform)
-        {
-            Vector3 result;
-            Transform(ref vector, ref transform, out result);
-            return result;
-        }
 
         /// <summary>
         /// Transforms a 3D vector by the given <see cref="Matrix"/>.
@@ -1757,26 +1731,6 @@ namespace WindowsScanline
 
             var strongValue = (Vector3)value;
             return Equals(ref strongValue);
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Vector3"/> to <see cref="RawVector3"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public unsafe static implicit operator RawVector3(Vector3 value)
-        {
-            return *(RawVector3*)&value;
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="RawVector3"/> to <see cref="Vector3"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public unsafe static implicit operator Vector3(RawVector3 value)
-        {
-            return *(Vector3*)&value;
         }
     }
 }
