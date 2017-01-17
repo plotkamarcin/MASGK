@@ -2,6 +2,8 @@
 
 namespace WindowsScanline
 {
+
+    // Represents mesh of an object
     public class Mesh
     {
         public string Name { get; set; }
@@ -25,6 +27,25 @@ namespace WindowsScanline
             public Vector3 Normal;
             public Vector3 Coordinates;
             public Vector3 WorldCoordinates;
+        }
+
+        public void TranslateMesh(double x, double y, double z)
+        {
+            for(int i=0;i<Vertices.Length;i++)
+            {
+                Vertices[i].Coordinates.X += (float)x;
+                Vertices[i].Coordinates.Y += (float)y;
+                Vertices[i].Coordinates.Z += (float)z;
+            }
+        }
+        public void ScaleMesh(double x, double y, double z)
+        {
+            for (int i = 0; i < Vertices.Length; i++)
+            {
+                Vertices[i].Coordinates.X *= (float)x;
+                Vertices[i].Coordinates.Y *= (float)y;
+                Vertices[i].Coordinates.Z *= (float)z;
+            }
         }
     }
 }

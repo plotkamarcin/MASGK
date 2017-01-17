@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace WindowsScanline
 {
+    //represents structure for interpolating data form gouraud shading
     public struct ScanLineData
     {
         public int currentY;

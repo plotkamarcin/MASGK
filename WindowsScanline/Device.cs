@@ -14,9 +14,11 @@ namespace WindowsScanline
         private WriteableBitmap bmp;
         private readonly int renderWidth;
         private readonly int renderHeight;
+        private readonly Vector3 lightPos;
 
-        public Device(WriteableBitmap bmp)
+        public Device(WriteableBitmap bmp, Vector3 lightPos)
         {
+            this.lightPos = lightPos;
             this.bmp = bmp;
             renderWidth = bmp.PixelWidth;
             renderHeight = bmp.PixelHeight;
@@ -252,8 +254,6 @@ namespace WindowsScanline
             Vector3 p2 = v2.Coordinates;
             Vector3 p3 = v3.Coordinates;
 
-            // Light position 
-            Vector3 lightPos = new Vector3(0, 10, 10);
             // computing the cos of the angle between the light vector and the normal vector
             // it will return a value between 0 and 1 that will be used as the intensity of the color
             float nl1 = ComputeNDotL(v1.WorldCoordinates, v1.Normal, lightPos);
@@ -373,18 +373,17 @@ namespace WindowsScanline
         // during each frame
         public void RenderPoints(Camera camera, params Mesh[] meshes)
         {
-            // To understand this part, please read the prerequisites resources
+            //view matrix
             var viewMatrix = Matrix.LookAtLH(camera.Position, camera.Target, Vector3.UnitY);
-            var projectionMatrix = Matrix.PerspectiveFovLH(0.78f,
-                                                           (float)renderWidth / renderHeight,
-                                                           0.01f, 1.0f);
+            //projection matrix
+            var projectionMatrix = Matrix.PerspectiveFovLH(0.78f, (float)renderWidth / renderHeight, 0.01f, 1.0f);
 
             foreach (Mesh mesh in meshes)
             {
-                // Beware to apply rotation before translation 
+                // world matrix
                 var worldMatrix = Matrix.RotationYawPitchRoll(mesh.Rotation.Y, mesh.Rotation.X, mesh.Rotation.Z) *
                                   Matrix.Translation(mesh.Position);
-
+                //transform matrix
                 var transformMatrix = worldMatrix * viewMatrix * projectionMatrix;
 
                 foreach (var vertex in mesh.Vertices)
@@ -459,8 +458,8 @@ namespace WindowsScanline
                     var pixelB = Project(vertexB, transformMatrix, worldMatrix);
                     var pixelC = Project(vertexC, transformMatrix, worldMatrix);
 
-                    var color = 0.25f + (faceIndex % mesh.Faces.Length) * 0.75f / mesh.Faces.Length;
-                    DrawTriangle(pixelA, pixelB, pixelC, new Color4(color, color, color, 1));
+                    //var color = 0.25f + (faceIndex % mesh.Faces.Length) * 0.75f / mesh.Faces.Length;
+                    DrawTriangle(pixelA, pixelB, pixelC, new Color4(1, 0, 0, 1));
                     faceIndex++;
                 });
             }

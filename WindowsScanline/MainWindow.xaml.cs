@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,29 +22,29 @@ namespace WindowsScanline
         
         private Device device;
         
-        Camera mera = new Camera();
+        Camera camera = new Camera();
         Mesh[] meshes;
         ObjParser.Obj[] objects;
         ObjParser.Obj objparser = new ObjParser.Obj();
-        
-
+        WriteableBitmap bmp;
+        Vector3 lightPosition =new Vector3(10, 10, 20);
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             // Choose the back buffer resolution here
-            WriteableBitmap bmp = new WriteableBitmap(800, 600, 96, 96, PixelFormats.Bgra32, null);
+            bmp = new WriteableBitmap(800, 600, 96, 96, PixelFormats.Bgra32, null);
 
-            device = new Device(bmp);
+            device = new Device(bmp,lightPosition);
 
             // Our Image XAML control
             frontBuffer.Source = (ImageSource) bmp;
 
             //setup camera
-            mera.Position = new Vector3(0, 0, 10.0f);
-            mera.Target = Vector3.Zero;
+            camera.Position = new Vector3(0, 0, 10.0f);
+            camera.Target = Vector3.Zero;
 
             //Setup objects filenames
-            string[] filenames = { "box.obj", "cylinder.obj" };
+            string[] filenames = { "box.obj", "cylinder.obj","cone.obj", "sphere.obj", "teapot.obj","torus.obj", "tube.obj" };
             objects = new ObjParser.Obj[filenames.Length];
             meshes = new Mesh[filenames.Length];
 
@@ -90,10 +91,40 @@ namespace WindowsScanline
                 }
             }
 
+            //additional mesh modifications
+            meshes[0].TranslateMesh(0, 1, 0);
+            meshes[0].ScaleMesh(1, 1, 3);
+            meshes[1].TranslateMesh(0, 1, 0);
+            meshes[1].ScaleMesh(0.5, 0.5, 0.5);
+            meshes[2].TranslateMesh(-1, 2, 0);
+            meshes[2].ScaleMesh(0.5, 0.5, 0.5);
+            meshes[3].TranslateMesh(3, 3, 0);
+            meshes[3].ScaleMesh(0.5, 0.5, 0.5);
+            meshes[4].TranslateMesh(-5, 2, 0);
+            meshes[4].ScaleMesh(0.33, 0.33, 0.33);
+            meshes[5].TranslateMesh(-3, -2, 0);
+            meshes[5].ScaleMesh(0.5, 0.5, 0.5);
+            meshes[6].TranslateMesh(1, -2, 0);
+            meshes[6].ScaleMesh(0.5, 0.5, 0.5);
 
-           // Registering to the XAML rendering loop
+            // Registering to the XAML rendering loop
             CompositionTarget.Rendering += CompositionTarget_Rendering;
-            
+            // Registering save image function
+            this.KeyDown += SaveRenderedImage;
+           
+        }
+
+        private void SaveRenderedImage(object sender, KeyEventArgs e)
+        {
+            if (e.Key==Key.S)
+            {
+                using (FileStream stream5 = new FileStream("rrender.png", FileMode.Create))
+                {
+                    PngBitmapEncoder encoder5 = new PngBitmapEncoder();
+                    encoder5.Frames.Add(BitmapFrame.Create(bmp));
+                    encoder5.Save(stream5);
+                }
+            }
         }
 
         // Rendering loop handler
@@ -109,20 +140,20 @@ namespace WindowsScanline
             //rendering loop
             device.Clear(0, 0, 0, 255);
 
-            // rotating slightly during each frame rendered
+            // rotating the scene during each frame rendered
             foreach (Mesh m in meshes)
             {
-                m.Rotation= new Vector3(m.Rotation.X + 0.001f, m.Rotation.Y + 0.001f, m.Rotation.Z);
+                m.Rotation = new Vector3(m.Rotation.X + 0.001f, m.Rotation.Y + 0.001f, m.Rotation.Z);
             }
-            Vector3 light = new Vector3(0, 10, 10);
-            // Doing the various matrix operations
-            foreach ( Mesh m in meshes)
+
+            //MainWindow rendering routine
+            foreach (Mesh m in meshes)
             {
-                device.RenderWireframe(mera, m);
+                device.RenderTriangles(camera, m);
             }
             // Flushing the back buffer into the front buffer
             device.Present();
- 
+        
         }
         public MainWindow()
         {

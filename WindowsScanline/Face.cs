@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace WindowsScanline
 {
+    //Represents face with triangle and normal inices from obj table
     public class Face
     {
         public int A;

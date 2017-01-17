@@ -5,10 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace WindowsScanline
 {
-    /// <summary>
     /// Represents a 4x4 mathematical matrix.
-    /// </summary>
- 
+
     public struct Matrix 
     {
         public static readonly Matrix Zero = new Matrix();
